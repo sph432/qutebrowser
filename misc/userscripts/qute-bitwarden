@@ -46,6 +46,8 @@ argument_parser = argparse.ArgumentParser(
     epilog=EPILOG,
 )
 argument_parser.add_argument('url', nargs='?', default=os.getenv('QUTE_URL'))
+argument_parser.add_argument('--bw-invocation', '-b', default='bw',
+                             help='invocation used to execute the bitwarden client')
 argument_parser.add_argument('--dmenu-invocation', '-d', default='rofi -dmenu -i -p Bitwarden',
                              help='Invocation used to execute a dmenu-provider')
 argument_parser.add_argument('--password-prompt-invocation', '-p', default='rofi -dmenu -p "Master Password" -password -lines 0',
@@ -96,7 +98,7 @@ def ask_password(password_prompt_invocation):
         raise Exception('Could not unlock vault')
     master_pass = process.stdout.strip()
     return subprocess.check_output(
-        ['bw', 'unlock', '--raw', master_pass],
+        [bw_invocation, 'unlock', '--raw', master_pass],
         text=True,
     ).strip()
 
@@ -132,7 +134,7 @@ def get_session_key(auto_lock, password_prompt_invocation):
 def pass_(domain, encoding, auto_lock, password_prompt_invocation):
     session_key = get_session_key(auto_lock, password_prompt_invocation)
     process = subprocess.run(
-        ['bw', 'list', 'items', '--session', session_key, '--url', domain],
+        [bw_invocation, 'list', 'items', '--session', session_key, '--url', domain],
         capture_output=True,
     )
 
@@ -152,7 +154,7 @@ def pass_(domain, encoding, auto_lock, password_prompt_invocation):
 def get_totp_code(selection_id, domain_name, encoding, auto_lock, password_prompt_invocation):
     session_key = get_session_key(auto_lock, password_prompt_invocation)
     process = subprocess.run(
-        ['bw', 'get', 'totp', '--session', session_key, selection_id],
+        [bw_invocation, 'get', 'totp', '--session', session_key, selection_id],
         capture_output=True,
     )
 
